@@ -1,0 +1,83 @@
+ASM1_NASM32
+section .data
+    out_str db  'Hello, World',0xa
+    len_out equ $- out_str
+section .text
+global main
+main:
+    mov eax,4
+    mov ebx,1
+    mov ecx,out_str
+    mov edx,len_out
+    int 80h
+    
+    mov eax,1
+    mov ebx,0
+    int 80h
+    
+ASM2_NASM32
+section .bss
+    inp_str resb    32
+section .text
+global main
+main:
+    mov eax,3
+    mov ebx,0
+    mov ecx,inp_str
+    mov edx,32
+    int 80h
+    
+    mov eax,4
+    mov ebx,1
+    mov ecx,inp_str
+    mov edx,32
+    int 80h
+    
+    mov eax,1
+    mov ebx,0
+    int 80h
+
+ASM3_NASM32
+section .bss
+    inp_str resb    32
+section .text
+global main
+main:
+    mov eax,3
+    mov ebx,0
+    mov ecx,inp_str
+    mov edx,32
+    int 80h
+    
+    mov ecx,inp_str
+    call loop1
+    call print
+    mov eax,1
+    mov ebx,0
+    int 80h
+      
+loop1:        
+    mov al,[ecx]
+    cmp al,0xa
+    je done
+    cmp al,'a'
+    jb recurse
+    cmp al,'z'
+    ja recurse
+    sub al,0x20
+    mov [ecx], al
+recurse:
+    inc ecx
+    jmp loop1
+    
+done:    
+    ret
+
+print:    
+    mov eax,4
+    mov ebx,1
+    mov ecx,inp_str
+    mov edx,32
+    int 80h
+
+    
