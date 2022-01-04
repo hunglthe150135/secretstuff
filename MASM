@@ -17,3 +17,33 @@ main PROC
 main ENDP
 END main
 
+16-bit ASM2
+.MODEL small
+.STACK 100h
+.code
+main PROC
+    mov cx,0
+    mov ah,1
+while_:
+    int 21h
+    cmp al,0dh
+    je  end_while
+    inc cx
+    push ax
+    jmp while_
+
+end_while:
+    mov ah,2
+    cmp cx,0
+    je  exit
+
+print_stack:
+    pop dx
+    int 21h
+    loop    print_stack
+
+exit:
+    mov ah,4ch
+    int 21h
+main ENDP
+END main
