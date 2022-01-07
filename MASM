@@ -426,3 +426,126 @@ find_min PROC
         loop    hienso1
 find_min ENDP
 end main
+
+16-bit ASM10
+.model small
+.stack 100h
+.data
+    tb3 db  "Tong chan: $"
+    tb4    db  10,13,"Tong le: $"
+    a   dw  100  dup(0)
+    count   dw  0
+    tongChan    dw  0
+    tongLe  dw  0
+.code
+;description
+main PROC
+    mov ax,@data
+    mov ds,ax
+    
+    mov cx,100
+    xor si,si 
+
+    call    nhap_mang
+    call    tinh_tong
+
+    mov ah,4ch
+    int 21h
+main ENDP
+
+;description
+nhap_mang PROC
+    nhap:
+        push cx
+
+        nhapso:
+            mov ah,1
+            int 21h
+            cmp al," "
+            je  catkq
+            cmp al,13
+            je  stop
+            sub al,30h
+            mov cl,al
+            xor ch,ch
+            mov bx,10
+            mov ax,a[si]
+            mul bx
+            add ax,cx
+            mov a[si],ax
+            jmp nhapso
+        catkq:
+            add si,2
+            pop cx
+            inc count
+        loop    nhap
+        stop:
+            add si,2
+            pop cx
+            inc count
+            ret
+            
+nhap_mang ENDP
+
+;description
+tinh_tong PROC
+    xor si,si
+    mov cx,count
+    duyet:
+        mov ax,a[si]
+        test ax,1
+        jz soChan
+        jnz soLe
+        soChan:
+            add tongChan,ax
+            jmp qua
+        soLe:
+            add tongLe, ax
+        qua:
+            add si,2
+        loop    duyet
+
+        xor cx,cx
+        mov bx,10
+    
+    lea dx,tb3
+    mov ah,9
+    int 21h
+
+    mov ax, tongChan
+    chia:
+        xor dx,dx
+        div bx
+        push    dx
+        inc cx
+        cmp ax,0
+        jne chia
+
+    mov ah,2
+    hienso:
+        pop dx
+        add dl,30h
+        int 21h
+        loop hienso
+    
+    lea dx,tb4
+    mov ah,9
+    int 21h
+
+    mov ax, tongLe
+    chia2:
+        xor dx,dx
+        div bx
+        push    dx
+        inc cx
+        cmp ax,0
+        jne chia2
+
+    mov ah,2
+    hienso2:
+        pop dx
+        add dl,30h
+        int 21h
+        loop hienso2    
+tinh_tong ENDP
+end main
