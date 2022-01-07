@@ -20,6 +20,222 @@ END main
 16-bit ASM2
 .MODEL small
 .STACK 100h
+.DATA
+    tb1 db "Hay nhap vao mot chuoi ky tu:  $"
+    tb2 db 13, 10,"Chuoi vua nhap la:  $"
+    sr db 200 dup("$")
+.CODE
+main PROC
+    MOV AX, @DATA
+    MOV DS,AX
+    
+    lea dx,tb1
+    mov ah,09h
+    int 21h
+  
+    mov ah,0Ah
+    lea dx,sr
+    int 21h
+  
+    lea DX,tb2
+    mov ah,09h
+    int 21h
+  
+    lea dx,sr
+    add dx,2
+    int 21h
+
+    mov ah,4ch
+    int 21h
+main ENDP
+END main
+
+16-bit ASM3
+.MODEL small
+.STACK 100h
+.DATA
+    tb1 DB 'Nhap vao 1 chuoi: $'
+    tb3 DB 10,13,'Doi thanh chu hoa: $'
+    s   DB 101 dup('$')
+.CODE
+main PROC
+    MOV AX, @DATA
+    MOV DS,AX
+    ;xuat chuoi tb1
+    MOV AH,09h       
+    LEA DX,tb1
+    INT 21h
+    ;nhap chuoi s
+    MOV AH,0AH       
+    LEA DX,s
+    INT 21h              
+; xuat chuoi tb3
+    MOV AH,09h       
+    LEA DX,tb3
+    INT 21h          
+; Goi chuong trinh con in chuoi hoa
+    CALL InChuoiHoa                      
+   
+    MOV AH,4ch
+    INT 21h
+; Doi thanh chuoi ky tu hoa
+    InChuoiHoa PROC
+        LEA SI,s+1       
+        XOR CX,CX
+        MOV CL,[SI] ;so ky tu cua xau nhap vao, luu vao CX
+        INC SI
+        LapHoa:
+            MOV AH,02h
+            MOV DL,[SI]
+            CMP DL,'a'
+            JB    LH1
+            CMP DL,'z'
+            JA    LH1
+            SUB DL,32
+            LH1: INC SI
+                INT 21h
+            LOOP LapHoa
+        RET
+    InChuoiHoa ENDP
+
+main ENDP
+END main
+
+16-bit ASM4
+.model small
+.stack 100h
+.data 
+    num1    dw  0
+    num2    dw  0
+.code
+    main proc      
+        mov ax, @data
+        mov ds, ax                          
+        call inputDec                       
+        mov num1, ax
+        call inputDec
+        mov num2, ax                       
+        add ax, num1
+
+        call outputDec  
+         
+        mov ah, 4ch
+        int 21h
+         
+    main endp
+     
+    inputDec proc
+        ; Vao: nhap vao so
+        ; Ra: So luu trong Ax
+        push bx
+        push cx
+        push dx 
+         
+        batDau:
+            mov ah, 2
+            xor bx, bx
+            xor cx, cx
+            mov ah, 1
+            int 21h
+            cmp al, '-'
+            je dauTru
+            cmp al, '+'
+            je dauCong
+            jmp tiepTuc
+             
+            dauTru:
+                mov cx, 1
+             
+            dauCong:
+                int 21h
+             
+            tiepTuc:
+                cmp al, '0'
+                jnge khongPhaiSo    ; khong lop hon hoac bang
+                cmp al, '9'
+                jnle khongPhaiSo    ; Khong nho hon hoac bang 
+                and ax, 000fh       ; doi thanh chu so
+                push ax             ; cat vao ngan xep
+                mov ax, 10
+                 
+                mul bx              ; ax = tong*10
+                mov bx, ax          
+                pop ax
+                add bx, ax          ; tong = tong*10 + so
+                mov ah, 1
+                int 21h
+                cmp al, 13          ; da enter chua?
+                jne tiepTuc         ; nhap tiep
+                 
+                mov ax, bx          ; chuyen KQ ra ax
+                or cx, cx           ; co phai so am khong
+                je ra
+                neg ax              ; neu la so am thi doi ax ra so am
+                 
+            ra:
+                pop dx
+                pop cx
+                pop bx  
+
+                ret
+                 
+            khongPhaiSo:
+                mov ah, 2
+                mov dl, 0dh
+                int 21h
+                mov dl, 0ah
+                int 21
+                jmp batDau
+                 
+                 
+    inputDec endp 
+     
+    outputDec proc
+        push bx
+        push cx
+        push dx
+         
+        cmp ax, 0   ;   neu ax > 0 tuc la khong phai so am ta doi ra day
+        jge doiRaDay
+        push ax
+        mov dl, '-'
+        mov ah, 2
+        int 21h
+        pop ax
+        neg ax  ; ax = -ax
+         
+        doiRaDay:
+            xor cx, cx  ; gan cx = 0
+            mov bx, 10  ; so chia la 10
+            chia:
+                xor dx, dx  ; gan dx = 0
+                div bx      ; ax = ax / bx; dx = ax % bx
+                push dx
+                inc cx
+                cmp ax, 0   ; kiem tra xem thuong bang khong chua?
+                jne chia    ; neu khong bang thi lai chia
+                mov ah, 2
+            hien:
+                pop dx
+                or dl, 30h
+                int 21h
+                loop hien
+                 
+                pop dx
+                pop cx
+                pop bx
+                ;pop ax
+        ret
+         
+    outputDec endp
+     
+end main
+
+
+
+16-bit ASM6
+.MODEL small
+.STACK 100h
 .code
 main PROC
     mov cx,0
