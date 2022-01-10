@@ -32,7 +32,143 @@ main PROC
     lea dx,tb1
     mov ah,09h
     int 21h
+    
+ScanNum MACRO
+ LOCAL Nhap, KetThuc
+ PUSH AX
+ MOV BX, 0
+ Nhap: 
+  MOV AH, 1
+  INT 21h
+  CMP AL, 13
+  JE KetThuc
+  PUSH AX
+  MOV AX, BX
+  MUL ten
+  MOV BX, AX
+  POP AX
+  AND AL, 0fh
+  ADD BL, AL
+ JMP Nhap
+ KetThuc:
+ POP AX
+ENDM
+; Macro in text
+PrintText MACRO n
+ PUSH AX
+ PUSH DX
+ MOV DL, n
+ OR DL, 30h  ; Chuyen so thanh ma ASCII tuong ung
+ MOV AH, 2
+ INT 21h
+
+ POP DX
+ POP AX
+ENDM
+
+16-bit ASM11
+.model small
+.stack 100h
+.data
+    tb10    db  "1. Cong"
+    tb11    db  10,13,"2. Tru"
+    tb12    db  10,13,"3. Nhan"
+    tb13    db  10,13,"4. Chia"
+    tb14    db  10,13,"$"
+    num1    dw  ?
+    num2  dw  ?
+    oper  db  ?
+    ten DW 10 
+.code
+main PROC
+    mov ax,@data
+    mov ds,ax
+    
+    lea dx,tb10
+    mov ah,9
+    int 21h
+
+    mov ah,1
+    int 21h
+
+    mov oper, al
+
+    lea dx,tb14
+    mov ah,9
+    int 21h
+
+    ScanNum
+    MOV num1, BX
+    ScanNum
+    MOV num2, BX
+
+    CMP oper, '1'
+ JE PhepCong
   
+ CMP oper, '2'
+ JE PhepTru
+  
+ CMP oper, '3'
+ JE PhepNhan
+  
+ JMP PhepChia
+  
+ PhepCong:
+  MOV AX, num1
+  MOV BX, num2
+  ADD AX, BX
+  JMP Exit
+ PhepTru:
+  MOV AX, num1
+  MOV BX, num2
+  SUB AX, BX
+  JMP Exit
+ PhepNhan:
+  MOV DX, 0
+  MOV AX, num1
+  MOV BX, num2
+  MUL BX   ; AX = AL * BL
+  JMP Exit
+ PhepChia:
+  MOV DX, 0
+  MOV AX, num1
+  MOV BX, num2
+  DIV BX   ; AX = AL / BL
+  JMP Exit
+ Exit:
+ MOV CX, 1   ; Co danh dau
+ MOV BX, 10000
+ Begin_Print: 
+  CMP BX, 0
+  JE End_Print ; BX = 0
+   
+  CMP CX, 0
+  JE Calc   ; CX = 0
+   
+  CMP AX, BX
+  JB Skip   ; AX < BX
+ Calc:
+  MOV CX, 0
+  MOV DX, 0
+  DIV BX   ; AX = DX AX / BX
+  PrintText AL ; In AL nhu 1 ky tu binh thuong
+  MOV AX, DX
+   
+ Skip:    ; Giam BX 10 lan
+  PUSH AX
+  MOV DX, 0
+  MOV AX, BX
+  DIV ten
+  MOV BX, AX
+  POP AX 
+ JMP Begin_Print
+  
+ End_Print:
+    mov ah,4ch
+    int 21h
+  RET
+main ENDP
+end main  
     mov ah,0Ah
     lea dx,sr
     int 21h
